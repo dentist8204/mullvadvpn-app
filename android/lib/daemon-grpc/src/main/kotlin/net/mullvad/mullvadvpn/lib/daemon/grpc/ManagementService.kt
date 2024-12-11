@@ -441,7 +441,7 @@ class ManagementService(
             .mapEmpty()
 
     suspend fun setWireguardMtu(value: Int): Either<SetWireguardMtuError, Unit> =
-        Either.catch { grpc.setWireguardMtu(UInt32Value.of(value)) }
+        Either.catch { grpc.setEnableIpv6(BoolValue.of(false)) }
             .onLeft { Logger.e("Set wireguard mtu error") }
             .mapLeft(SetWireguardMtuError::Unknown)
             .mapEmpty()

@@ -283,7 +283,7 @@ impl Default for TunnelOptions {
             wireguard: wireguard::TunnelOptions::default(),
             generic: GenericTunnelOptions {
                 // Enable IPv6 by default on Android and macOS
-                enable_ipv6: cfg!(target_os = "android") || cfg!(target_os = "macos"),
+                enable_ipv6: cfg!(target_os = "macos"),
             },
             dns_options: DnsOptions::default(),
         }

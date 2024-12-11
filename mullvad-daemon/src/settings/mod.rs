@@ -109,9 +109,6 @@ impl SettingsPersister {
 
         // Force IPv6 to be enabled on Android
         if cfg!(target_os = "android") {
-            should_save |= !settings.tunnel_options.generic.enable_ipv6;
-            settings.tunnel_options.generic.enable_ipv6 = true;
-
             // Auto-connect is managed by Android itself.
             settings.auto_connect = false;
         }

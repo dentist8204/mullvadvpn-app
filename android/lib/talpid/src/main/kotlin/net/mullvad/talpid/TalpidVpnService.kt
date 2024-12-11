@@ -78,6 +78,8 @@ open class TalpidVpnService : LifecycleVpnService() {
     // Function is to be cleaned up and lint suppression to be removed.
     @Suppress("ReturnCount")
     private fun createTun(config: TunConfig): CreateTunResult {
+        Logger.d("Creating tunnel with config: $config")
+
         prepareVpnSafe()
             .mapLeft { it.toCreateTunResult() }
             .onLeft {
