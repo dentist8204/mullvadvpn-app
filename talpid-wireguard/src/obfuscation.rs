@@ -15,8 +15,7 @@ use talpid_types::{ErrorExt, net::obfuscation::ObfuscatorConfig};
 use tunnel_obfuscation::{
     Obfuscator, Settings as ObfuscationSettings, create_obfuscator,
     multiplexer::{self, Multiplexer},
-    quic, shadowsocks,
-    udp2tcp::{self, Udp2Tcp},
+    quic, shadowsocks, udp2tcp,
 };
 
 /// Begin running obfuscation machine, if configured. This function will patch `config`'s endpoint
