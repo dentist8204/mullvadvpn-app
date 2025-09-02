@@ -31,6 +31,7 @@ pub async fn apply_obfuscation_config(
     #[cfg(target_os = "android")] tun_provider: Arc<Mutex<TunProvider>>,
 ) -> Result<Option<ObfuscatorHandle>> {
     let Some(ref obfuscator_config) = config.obfuscator_config else {
+        log::info!("** Running obfuscation multiplexer **");
         let entry_addr = config.entry_peer.endpoint;
 
         let direct = multiplexer::Transport::Direct(entry_addr);

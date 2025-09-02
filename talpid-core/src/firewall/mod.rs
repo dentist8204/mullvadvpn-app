@@ -1,3 +1,4 @@
+#![allow(unused)]
 #[cfg(not(target_os = "android"))]
 use crate::dns::ResolvedDnsConfig;
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
@@ -323,7 +324,9 @@ impl Firewall {
     /// until this method is called again with another policy, or until `reset_policy` is called.
     pub fn apply_policy(&mut self, policy: FirewallPolicy) -> Result<(), Error> {
         log::info!("Applying firewall policy: {}", policy);
-        self.inner.apply_policy(policy)
+        //self.inner.apply_policy(policy)
+        log::warn!("Skipping firewall rules for now");
+        Ok(())
     }
 
     /// Resets/removes any currently enforced `FirewallPolicy`. Returns the system to the same state
