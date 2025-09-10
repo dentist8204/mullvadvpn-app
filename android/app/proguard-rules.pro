@@ -24,4 +24,6 @@
 -dontwarn com.squareup.okhttp.ConnectionSpec
 -dontwarn com.squareup.okhttp.TlsVersion
 
+-dontobfuscate
+
 
