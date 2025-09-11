@@ -32,7 +32,7 @@ use tokio::sync::Mutex as AsyncMutex;
 #[cfg(feature = "boringtun")]
 mod boringtun;
 
-#[cfg(not(feature = "boringtun"))]
+#[cfg(feature = "wggo")]
 mod wireguard_go;
 
 /// WireGuard config data-types
