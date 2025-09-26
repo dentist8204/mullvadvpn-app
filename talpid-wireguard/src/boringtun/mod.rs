@@ -11,10 +11,9 @@ use boringtun::{
         api::{ApiClient, ApiServer, command::*},
         peer::AllowedIP,
     },
-    udp::{
-        UdpSocketFactory,
-        channel::{PacketChannelUdp, TunChannelRx, TunChannelTx, get_packet_channels},
-    },
+    tun::channel::{TunChannelRx, TunChannelTx},
+    udp::channel::{UdpChannelFactory, new_udp_tun_channel},
+    udp::socket::UdpSocketFactory,
 };
 #[cfg(not(target_os = "android"))]
 use ipnetwork::IpNetwork;
@@ -39,7 +38,7 @@ type UdpFactory = UdpSocketFactory;
 
 type SinglehopDevice = DeviceHandle<(UdpFactory, Arc<tun07::AsyncDevice>, Arc<tun07::AsyncDevice>)>;
 type EntryDevice = DeviceHandle<(UdpFactory, TunChannelTx, TunChannelRx)>;
-type ExitDevice = DeviceHandle<(PacketChannelUdp, Arc<AsyncDevice>, Arc<AsyncDevice>)>;
+type ExitDevice = DeviceHandle<(UdpChannelFactory, Arc<AsyncDevice>, Arc<AsyncDevice>)>;
 
 const PACKET_CHANNEL_CAPACITY: usize = 100;
 
@@ -242,7 +241,7 @@ async fn create_devices(
             .unwrap_or(Ipv6Addr::UNSPECIFIED);
 
         let (tun_tx, tun_rx, udp_channels) =
-            get_packet_channels(PACKET_CHANNEL_CAPACITY, source_v4, source_v6);
+            new_udp_tun_channel(PACKET_CHANNEL_CAPACITY, source_v4, source_v6);
 
         let (exit_api, exit_api_server) = ApiServer::new();
         let exit_device = ExitDevice::new(
