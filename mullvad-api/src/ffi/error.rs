@@ -1,3 +1,5 @@
+// TODO: Remove me when mullvad-api no longer allows undocumented_unsafe_blocks.
+#![warn(clippy::undocumented_unsafe_blocks)]
 use crate::rest;
 use std::ffi::{CStr, CString};
 
@@ -47,17 +49,17 @@ impl MullvadApiError {
 
     pub fn unwrap(&self) {
         if !matches!(self.kind, MullvadApiErrorKind::NoError) {
+            // SAFETY: `self.description` was initialized using `CString::into_raw`.
             let desc = unsafe { std::ffi::CStr::from_ptr(self.description) };
             panic!("API ERROR - {:?} - {}", self.kind, desc.to_str().unwrap());
         }
     }
 
     pub fn drop(self) {
-        if self.description.is_null() {
-            return;
+        if !self.description.is_null() {
+            // SAFETY: `self.description` was initialized using `CString::into_raw`.
+            let _ = unsafe { CString::from_raw(self.description) };
         }
-
-        let _ = unsafe { CString::from_raw(self.description) };
     }
 }
 
