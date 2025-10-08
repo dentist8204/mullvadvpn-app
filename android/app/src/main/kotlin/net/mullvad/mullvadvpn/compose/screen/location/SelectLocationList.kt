@@ -1,5 +1,7 @@
 package net.mullvad.mullvadvpn.compose.screen.location
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,9 +18,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.intl.Locale
@@ -26,7 +33,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import net.mullvad.mullvadvpn.R
 import net.mullvad.mullvadvpn.compose.button.PrimaryButton
 import net.mullvad.mullvadvpn.compose.component.MullvadCircularProgressIndicatorLarge
@@ -34,6 +44,7 @@ import net.mullvad.mullvadvpn.compose.component.drawVerticalScrollbar
 import net.mullvad.mullvadvpn.compose.constant.ContentType
 import net.mullvad.mullvadvpn.compose.extensions.animateScrollAndCentralizeItem
 import net.mullvad.mullvadvpn.compose.preview.SearchLocationsListUiStatePreviewParameterProvider
+import net.mullvad.mullvadvpn.compose.state.MultihopRelayListType
 import net.mullvad.mullvadvpn.compose.state.RelayListType
 import net.mullvad.mullvadvpn.compose.state.SelectLocationListUiState
 import net.mullvad.mullvadvpn.compose.util.RunOnKeyChange
@@ -44,6 +55,8 @@ import net.mullvad.mullvadvpn.lib.model.RelayItemId
 import net.mullvad.mullvadvpn.lib.theme.AppTheme
 import net.mullvad.mullvadvpn.lib.theme.Dimens
 import net.mullvad.mullvadvpn.lib.theme.color.AlphaScrollbar
+//import net.mullvad.mullvadvpn.lib.ui.component.MultihopSelecter
+//import net.mullvad.mullvadvpn.lib.ui.component.SingleHopSelector
 import net.mullvad.mullvadvpn.lib.ui.component.relaylist.RelayListItem
 import net.mullvad.mullvadvpn.lib.ui.tag.SELECT_LOCATION_LIST_TEST_TAG
 import net.mullvad.mullvadvpn.util.Lce
@@ -69,6 +82,7 @@ private fun PreviewSelectLocationList(
                 onAddCustomList = {},
                 onEditCustomLists = {},
                 onToggleExpand = { id: RelayItemId, id1: CustomListId?, bool: Boolean -> },
+                onSelectRelayList = {},
             )
         }
     }
@@ -87,6 +101,7 @@ fun SelectLocationList(
     onAddCustomList: () -> Unit,
     onEditCustomLists: (() -> Unit)?,
     onUpdateBottomSheetState: (LocationBottomSheetState) -> Unit,
+    onSelectRelayList: (MultihopRelayListType) -> Unit,
 ) {
     val viewModel =
         koinViewModel<SelectLocationListViewModel>(
@@ -114,6 +129,7 @@ fun SelectLocationList(
         onAddCustomList = onAddCustomList,
         onEditCustomLists = onEditCustomLists,
         onToggleExpand = viewModel::onToggleExpand,
+        onSelectRelayList,
     )
 }
 
@@ -128,12 +144,32 @@ private fun SelectLocationListContent(
     onAddCustomList: () -> Unit,
     onEditCustomLists: (() -> Unit)?,
     onToggleExpand: (RelayItemId, CustomListId?, Boolean) -> Unit,
+    onSelectRelayList: (MultihopRelayListType) -> Unit,
 ) {
     var prevTopItem by remember { mutableStateOf<RelayListItem?>(null) }
+    lazyListState.canScrollForward
+
+    var expandness = remember { Animatable(1f) }
+    val scope = rememberCoroutineScope()
+    val connection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val delta = available.y / 265f
+                scope.launch { expandness.snapTo((expandness.value + delta).coerceIn(0f, 1f)) }
+                return super.onPreScroll(available, source)
+            }
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                scope.launch { expandness.animateTo(if (expandness.value < 0.5f) 0f else 1f) }
+                return super.onPostFling(consumed, available)
+            }
+        }
+    }
 
     LazyColumn(
         modifier =
-            Modifier.fillMaxSize()
+            Modifier.nestedScroll(connection)
+                .fillMaxSize()
                 .padding(horizontal = Dimens.mediumPadding)
                 .drawVerticalScrollbar(
                     lazyListState,
@@ -153,6 +189,34 @@ private fun SelectLocationListContent(
             is Lce.Loading -> loading()
             is EntryBlocked -> entryBlocked(openDaitaSettings = openDaitaSettings)
             is Content -> {
+
+                stickyHeader {
+                    Surface {
+//                        AnimatedContent(
+//                            state.value.relayListType is RelayListType.Multihop,
+//                            modifier = Modifier.padding(bottom = 8.dp),
+//                        ) {
+//                            val relayList = state.value.relayListType
+//                            when (relayList) {
+//                                is RelayListType.Multihop ->
+//                                    MultihopSelecter(
+//                                        modifier = Modifier,
+//                                        selected =
+//                                            relayList.multihopRelayListType ==
+//                                                MultihopRelayListType.EXIT,
+//                                        onSelectHop = {
+//                                            val listType =
+//                                                if (it) MultihopRelayListType.EXIT
+//                                                else MultihopRelayListType.ENTRY
+//                                            onSelectRelayList(listType)
+//                                        },
+//                                        progress = 1f - expandness.value,
+//                                    )
+//                                RelayListType.Single -> SingleHopSelector(1f - expandness.value)
+//                            }
+//                        }
+                    }
+                }
                 // When recents have been disabled and are enabled again and we are at the
                 // top of the list we scroll up so that recents are visible again.
                 val shouldScrollToTop =
