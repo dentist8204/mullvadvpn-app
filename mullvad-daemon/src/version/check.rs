@@ -39,9 +39,9 @@ static CHECK_ENABLED: LazyLock<bool> = LazyLock::new(|| {
 const DOWNLOAD_TIMEOUT: Duration = Duration::from_secs(15);
 
 /// Wait this long until next check after a successful check
-const UPDATE_INTERVAL: Duration = Duration::from_secs(60 * 60 * 24);
+const UPDATE_INTERVAL: Duration = Duration::from_secs(60);
 /// Wait this long until next try if an update failed
-const UPDATE_INTERVAL_ERROR: Duration = Duration::from_secs(60 * 60 * 6);
+const UPDATE_INTERVAL_ERROR: Duration = Duration::from_secs(60);
 /// Retry strategy for `GetVersionInfo`.
 const IMMEDIATE_RETRY_STRATEGY: ConstantInterval = ConstantInterval::new(Duration::ZERO, Some(3));
 
