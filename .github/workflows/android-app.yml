@@ -59,7 +59,6 @@ on:
         required: false
   # Build if main is updated to ensure up-to-date caches are available
   push:
-    branches: [main]
 
 permissions: {}
 
@@ -143,9 +142,7 @@ jobs:
   run-lint-and-tests:
     name: Run lint and test tasks
     needs: [prepare]
-    runs-on: ubuntu-latest
-    container:
-      image: ${{ needs.prepare.outputs.container_image }}
+    runs-on: app-gh-build
     strategy:
       fail-fast: false
       matrix:
@@ -161,27 +158,48 @@ jobs:
           - gradle-task: detekt
           - gradle-task: lint
     steps:
-      # Fix for HOME path overridden by GH runners when building in containers, see:
-      # https://github.com/actions/runner/issues/863
-      - name: Fix HOME path
-        run: echo "HOME=/root" >> $GITHUB_ENV
-
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          submodules: true
 
-      - name: Run gradle task
-        uses: burrunan/gradle-cache-action@v3
-        with:
-          job-id: jdk17
-          arguments: ${{ matrix.gradle-task }}
-          gradle-version: wrapper
-          build-root-directory: android
-          execution-only-caches: false
-          # Disable if logs are hard to follow.
-          concurrent: true
-          read-only: ${{ github.ref != 'refs/heads/main' }}
+      - name: Fetch submodules
+        run: |
+          git submodule update --init android/rust-android-gradle-plugin
+          git submodule update --init wireguard-go-rs/libwg/wireguard-go
+
+      - name: Clean gradle
+        if: github.event.inputs.clean == 'true'
+        run: >
+          ./building/container-run.sh android android/gradlew -p android --console plain
+          clean
+
+      - name: Run lint
+        if: github.event.inputs.clean == 'true'
+        run: >
+          ./building/container-run.sh android android/gradlew -p android --console plain
+          lint
+
+      - name: Run detekt
+        if: github.event.inputs.clean == 'true'
+        run: >
+          ./building/container-run.sh android android/gradlew -p android --console plain
+          detekt
+
+      - name: Run arch tests
+        if: github.event.inputs.clean == 'true'
+        run: >
+          ./building/container-run.sh android android/gradlew -p android --console plain
+          :test:arch:test --rerun-tasks
+
+      - name: Run unit tests
+        if: github.event.inputs.clean == 'true'
+        run: >
+          ./building/container-run.sh android android/gradlew -p android --console plain
+          testDebugUnitTest -x :test:arch:testDebugUnitTest
+          :app:testOssProdDebugUnitTest
+          :service:testOssProdDebugUnitTest
+          :lib:billing:testDebugUnitTest
+          :lib:daemon-grpc:testDebugUnitTest
+          :lib:shared:testDebugUnitTest
 
   instrumented-tests:
     name: Run instrumented tests
