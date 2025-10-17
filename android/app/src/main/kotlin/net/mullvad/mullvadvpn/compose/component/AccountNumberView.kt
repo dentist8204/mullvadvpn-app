@@ -14,8 +14,6 @@ fun AccountNumberView(
     InformationView(
         content =
             if (obfuscateWithPasswordDots) accountNumber.groupPasswordModeWithSpaces()
-            else accountNumber.groupWithSpaces(),
-        modifier = modifier,
-        whenMissing = MissingPolicy.SHOW_SPINNER,
+            else accountNumber.groupWithSpaces(), modifier = modifier, whenMissing = MissingPolicy.SHOW_SPINNER,
     )
 }
