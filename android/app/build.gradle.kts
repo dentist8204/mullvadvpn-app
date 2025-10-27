@@ -272,11 +272,12 @@ cargo {
     features {
         val enabledFeatures =
             buildList {
-                    if (enableApiOverride) {
-                        add("api-override")
-                    }
-                    if (enableGotaTun) {
-                        add("boringtun")
+                    // When gotatun is enabled, we don't add features here
+                    // because they're passed via extraCargoBuildArguments with --no-default-features
+                    if (!enableGotaTun) {
+                        if (enableApiOverride) {
+                            add("api-override")
+                        }
                     }
                 }
                 .toTypedArray()
@@ -287,6 +288,19 @@ cargo {
     extraCargoBuildArguments = buildList {
         add("--package=mullvad-jni")
         add("--locked")
+
+        // When gotatun is enabled, disable defaults and explicitly enable only needed features
+        if (enableGotaTun) {
+            add("--no-default-features")
+            val features = buildList {
+                add("boringtun")
+                if (enableApiOverride) {
+                    add("api-override")
+                }
+            }
+            add("--features")
+            add(features.joinToString(","))
+        }
     }
     exec = { spec, _ ->
         println("Executing Cargo: ${spec.commandLine.joinToString(" ")}")

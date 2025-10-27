@@ -13,6 +13,7 @@ workspace = true
 [features]
 boringtun = ["talpid-wireguard/boringtun"]
 multihop-pcap = ["talpid-wireguard/multihop-pcap"]
+default = ["talpid-wireguard/default"]
 
 [dependencies]
 anyhow = { workspace = true }
@@ -28,7 +29,7 @@ talpid-routing = { path = "../talpid-routing" }
 talpid-tunnel = { path = "../talpid-tunnel" }
 talpid-tunnel-config-client = { path = "../talpid-tunnel-config-client" }
 talpid-types = { path = "../talpid-types" }
-talpid-wireguard = { path = "../talpid-wireguard" }
+talpid-wireguard = { path = "../talpid-wireguard", default-features = false }
 tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs"] }
 either = { version = "1.15.0", features = ["serde"] }
 
