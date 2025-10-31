@@ -64,8 +64,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider, @unchecked Sendable {
 
         super.init()
 
-        Thread.sleep(forTimeInterval: 4)
-
         performSettingsMigration()
 
         let transportProvider = setUpTransportProvider(
