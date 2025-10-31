@@ -137,7 +137,7 @@ typedef struct EphemeralPeerParameters {
 } EphemeralPeerParameters;
 
 typedef struct SwiftGotaTun {
-  const struct GotaTun *_0;
+  struct GotaTun *_0;
 } SwiftGotaTun;
 
 typedef struct SwiftGotaTunConfiguration {
@@ -932,12 +932,12 @@ int32_t mullvad_ios_gotatun_start(struct SwiftGotaTun *tun_ptr,
 /**
  * Rebind sockets when the default route changes
  */
-int32_t mullvad_ios_gotatun_rebind_sockets(struct SwiftGotaTun *tun_ptr);
+int32_t mullvad_ios_gotatun_rebind_sockets(struct SwiftGotaTun tun_ptr);
 
 /**
  *
  */
-int32_t mullvad_ios_gotatun_stop(struct SwiftGotaTun *tun_ptr);
+int32_t mullvad_ios_gotatun_stop(struct SwiftGotaTun tun_ptr);
 
 /**
  *
