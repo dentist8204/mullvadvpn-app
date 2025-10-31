@@ -27,6 +27,10 @@ typedef struct EncryptedDnsProxyState EncryptedDnsProxyState;
 
 typedef struct ExchangeCancelToken ExchangeCancelToken;
 
+typedef struct GotaTun GotaTun;
+
+typedef struct GotaTunConfiguration GotaTunConfiguration;
+
 typedef struct Map Map;
 
 typedef struct RequestCancelHandle RequestCancelHandle;
@@ -131,6 +135,14 @@ typedef struct EphemeralPeerParameters {
   bool enable_daita;
   struct WgTcpConnectionFunctions funcs;
 } EphemeralPeerParameters;
+
+typedef struct SwiftGotaTun {
+  const struct GotaTun *_0;
+} SwiftGotaTun;
+
+typedef struct SwiftGotaTunConfiguration {
+  struct GotaTunConfiguration *_0;
+} SwiftGotaTunConfiguration;
 
 extern const uint16_t CONFIG_SERVICE_PORT;
 
@@ -909,6 +921,56 @@ struct ExchangeCancelToken *request_ephemeral_peer(const uint8_t *public_key,
                                                    const void *packet_tunnel,
                                                    int32_t tunnel_handle,
                                                    struct EphemeralPeerParameters peer_parameters);
+
+/**
+ *
+ */
+int32_t mullvad_ios_gotatun_start(struct SwiftGotaTun *tun_ptr,
+                                  struct SwiftGotaTunConfiguration configuration,
+                                  int32_t tun_fd);
+
+/**
+ * Rebind sockets when the default route changes
+ */
+int32_t mullvad_ios_gotatun_rebind_sockets(struct SwiftGotaTun *tun_ptr);
+
+/**
+ *
+ */
+int32_t mullvad_ios_gotatun_stop(struct SwiftGotaTun *tun_ptr);
+
+/**
+ *
+ */
+void mullvad_ios_gotatun_drop(struct SwiftGotaTun tun_ptr);
+
+/**
+ *
+ */
+struct SwiftGotaTunConfiguration mullvad_ios_gotatun_config_new(void);
+
+/**
+ *
+ */
+int32_t mullvad_ios_gotatun_config_set_exit(struct SwiftGotaTunConfiguration config,
+                                            const uint8_t *local_private_key,
+                                            const uint8_t *local_ephemeral_key,
+                                            const uint8_t *peer_public_key,
+                                            const char *peer_endpoint);
+
+/**
+ *
+ */
+int32_t mullvad_ios_gotatun_config_set_entry(struct SwiftGotaTunConfiguration config,
+                                             const uint8_t *local_private_key,
+                                             const uint8_t *local_ephemeral_key,
+                                             const uint8_t *peer_public_key,
+                                             const char *peer_endpoint);
+
+/**
+ *
+ */
+void mullvad_ios_gotatun_config_drop(struct SwiftGotaTunConfiguration config);
 
 /**
  * # Safety
