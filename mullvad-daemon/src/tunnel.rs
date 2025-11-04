@@ -68,11 +68,7 @@ impl ParametersGenerator {
         let Some(relays) = inner.last_generated_relays.as_ref() else {
             return false;
         };
-        match relays {
-            LastSelectedRelays::WireGuard {
-                server_override, ..
-            } => *server_override,
-        }
+        relays.server_override
     }
 
     /// Gets the location associated with the last generated tunnel parameters.
@@ -81,28 +77,14 @@ impl ParametersGenerator {
 
         let relays = inner.last_generated_relays.as_ref()?;
 
-        let hostname;
-        let bridge_hostname;
-        let entry_hostname;
-        let obfuscator_hostname;
-        let location;
         let take_hostname =
             |relay: &Option<Relay>| relay.as_ref().map(|relay| relay.hostname.clone());
 
-        match relays {
-            LastSelectedRelays::WireGuard {
-                wg_entry: entry,
-                wg_exit: exit,
-                obfuscator,
-                ..
-            } => {
-                entry_hostname = take_hostname(entry);
-                hostname = exit.hostname.clone();
-                obfuscator_hostname = take_hostname(obfuscator);
-                bridge_hostname = None;
-                location = exit.location.clone();
-            }
-        };
+        let entry_hostname = take_hostname(&relays.entry);
+        let hostname = relays.exit.hostname.clone();
+        let obfuscator_hostname = take_hostname(&relays.obfuscator);
+        let bridge_hostname = None;
+        let location = relays.exit.location.clone();
 
         Some(GeoIpLocation {
             ipv4: None,
@@ -152,9 +134,9 @@ impl InnerParametersGenerator {
                         || (first_relay.overridden_ipv6 && endpoint.peer.endpoint.is_ipv6())
                 };
 
-                self.last_generated_relays = Some(LastSelectedRelays::WireGuard {
-                    wg_entry,
-                    wg_exit,
+                self.last_generated_relays = Some(LastSelectedRelays {
+                    entry: wg_entry,
+                    exit: wg_exit,
                     obfuscator: obfuscator_relay,
                     server_override,
                 });
@@ -262,17 +244,15 @@ impl From<Error> for ParameterGenerationError {
 }
 
 /// Contains all relays that were selected last time when tunnel parameters were generated.
-// TODO: flatten
-enum LastSelectedRelays {
-    /// Represents all relays generated for a WireGuard tunnel.
-    /// The traffic flow can look like this:
-    ///     client -> obfuscator -> entry -> exit -> internet
-    /// But for most users, it will look like this:
-    ///     client -> entry -> internet
-    WireGuard {
-        wg_entry: Option<Relay>,
-        wg_exit: Relay,
-        obfuscator: Option<Relay>,
-        server_override: bool,
-    },
+///
+/// Represents all relays generated for a WireGuard tunnel.
+/// The traffic flow can look like this:
+///     client -> obfuscator -> entry -> exit -> internet
+/// But for most users, it will look like this:
+///     client -> entry -> internet
+struct LastSelectedRelays {
+    entry: Option<Relay>,
+    exit: Relay,
+    obfuscator: Option<Relay>,
+    server_override: bool,
 }
