@@ -48,9 +48,9 @@ pub fn clean_up_logging(ordinal: u64) {
 #[allow(dead_code)]
 pub enum LogLevel {
     Verbose,
-    #[cfg_attr(not(feature = "boringtun"), allow(dead_code))]
+    #[cfg_attr(feature = "wireguard-go", allow(dead_code))]
     Info,
-    #[cfg_attr(not(feature = "boringtun"), allow(dead_code))]
+    #[cfg_attr(feature = "wireguard-go", allow(dead_code))]
     Warning,
     Error,
 }
