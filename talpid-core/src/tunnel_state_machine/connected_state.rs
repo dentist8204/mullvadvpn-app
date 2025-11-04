@@ -10,8 +10,7 @@ use crate::dns::ResolvedDnsConfig;
 use crate::firewall::FirewallPolicy;
 #[cfg(target_os = "macos")]
 use crate::resolver::LOCAL_DNS_RESOLVER;
-#[cfg(windows)]
-use crate::tunnel::TunnelMonitor;
+
 use crate::tunnel::{TunnelEvent, TunnelMetadata};
 
 use super::connecting_state::TunnelCloseEvent;

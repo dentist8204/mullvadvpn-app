@@ -117,16 +117,6 @@ impl TunnelMonitor {
         Self::start_wireguard_tunnel(tunnel_parameters, log_file, args)
     }
 
-    /// Returns a path to an executable that communicates with relay servers.
-    /// Returns `None` if the executable is unknown.
-    #[cfg(windows)]
-    pub fn get_relay_client(
-        resource_dir: &path::Path,
-        params: &TunnelParameters,
-    ) -> Option<path::PathBuf> {
-        Some(std::env::current_exe().unwrap())
-    }
-
     fn start_wireguard_tunnel(
         params: &wireguard_types::TunnelParameters,
         log: Option<path::PathBuf>,
